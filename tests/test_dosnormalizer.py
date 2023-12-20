@@ -28,7 +28,7 @@ from nomad.utils import get_logger
 from nomad_dos_fingerprints import DOSFingerprint  # pylint: disable=import-error
 from dosnormalizer.dos_integrator import integrate_dos
 from electronicparsers.vasp import VASPParser
-from electronicparsers.fhiaims import FhIAimsParser
+from electronicparsers.fhiaims import FHIAimsParser
 from electronicparsers.exciting import ExcitingParser
 from runschema.run import Run, Program
 from runschema.system import System, Atoms
@@ -202,7 +202,7 @@ def dos_si_exciting():
 
 @pytest.fixture
 def dos_si_fhiaims():
-    return parse('tests/data/dos_si_fhiaims/aims.log', FhIAimsParser)
+    return parse('tests/data/dos_si_fhiaims/aims.log', FHIAimsParser)
 
 
 def test_fingerprint(dos_si_vasp):
