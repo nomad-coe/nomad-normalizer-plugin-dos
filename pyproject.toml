@@ -27,6 +27,8 @@ dev = [
 
 tests = [
     "electronicparsers@git+https://github.com/nomad-coe/electronic-parsers.git@develop",
+    "nomad-schema-plugin-run@git+https://github.com/nomad-coe/nomad-schema-plugin-run.git@develop",
+    "nomad-schema-plugin-simulation-workflow@git+https://github.com/nomad-coe/nomad-schema-plugin-simulation-workflow.git@develop",
     "nomad_dos_fingerprints@git+https://gitlab.mpcdf.mpg.de/nomad-lab/nomad-dos-fingerprints"
 ]
 

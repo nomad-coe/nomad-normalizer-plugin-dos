@@ -17,20 +17,38 @@
 #
 
 import pytest
+from typing import List, Union
+import numpy as np
 
 from nomad.units import ureg
 from nomad.datamodel import EntryArchive, EntryMetadata
 from nomad.client import normalize_all
 from nomad.utils import get_logger
-from tests.normalizing.conftest import (  # pylint: disable=unused-import
-    get_template_dos,
-)
 
 from nomad_dos_fingerprints import DOSFingerprint  # pylint: disable=import-error
 from dosnormalizer.dos_integrator import integrate_dos
 from electronicparsers.vasp import VASPParser
 from electronicparsers.fhiaims import FhIAimsParser
 from electronicparsers.exciting import ExcitingParser
+from runschema.run import Run, Program
+from runschema.system import System, Atoms
+from runschema.method import (
+    Method,
+    BasisSetContainer,
+    BasisSet,
+    Electronic,
+    DFT,
+    XCFunctional,
+    Functional,
+)
+from runschema.calculation import (
+    Calculation,
+    Energy,
+    EnergyEntry,
+    Dos,
+    DosValues,
+)
+from simulationworkflowschema import GeometryOptimization
 
 
 LOGGER = get_logger(__name__)
@@ -38,6 +56,133 @@ LOGGER = get_logger(__name__)
 
 def approx(value, abs=0, rel=1e-1):
     return pytest.approx(value, abs=abs, rel=rel)
+
+
+def get_template_computation() -> EntryArchive:
+    '''Returns a basic archive template for a computational calculation
+    '''
+    template = EntryArchive()
+    run = Run()
+    template.run.append(run)
+    run.program = Program(name='VASP', version='4.6.35')
+    system = System()
+    run.system.append(system)
+    system.atoms = Atoms(
+        lattice_vectors=[
+            [5.76372622e-10, 0.0, 0.0],
+            [0.0, 5.76372622e-10, 0.0],
+            [0.0, 0.0, 4.0755698899999997e-10]
+        ],
+        positions=[
+            [2.88186311e-10, 0.0, 2.0377849449999999e-10],
+            [0.0, 2.88186311e-10, 2.0377849449999999e-10],
+            [0.0, 0.0, 0.0],
+            [2.88186311e-10, 2.88186311e-10, 0.0],
+        ],
+        labels=['Br', 'K', 'Si', 'Si'],
+        periodic=[True, True, True])
+    scc = Calculation()
+    run.calculation.append(scc)
+    scc.system_ref = system
+    scc.energy = Energy(
+        free=EnergyEntry(value=-1.5936767191492225e-18),
+        total=EnergyEntry(value=-1.5935696296699573e-18),
+        total_t0=EnergyEntry(value=-3.2126683561907e-22))
+    return template
+
+
+def get_template_dft() -> EntryArchive:
+    '''Returns a basic archive template for a DFT calculation.
+    '''
+    template = get_template_computation()
+    run = template.run[-1]
+    method = Method()
+    run.method.append(method)
+    method.electrons_representation = [BasisSetContainer(
+        type='plane waves',
+        scope=['wavefunction'],
+        basis_set=[BasisSet(
+            type='plane waves',
+            scope=['valence'],
+        )]
+    )]
+    method.electronic = Electronic(method='DFT')
+    xc_functional = XCFunctional(exchange=[Functional(name='GGA_X_PBE')])
+    method.dft = DFT(xc_functional=xc_functional)
+    scc = run.calculation[-1]
+    scc.method_ref = method
+    template.workflow2 = GeometryOptimization()
+    return template
+
+
+def add_template_dos(
+        template: EntryArchive,
+        fill: List = [[[0, 1], [2, 3]]],
+        energy_reference_fermi: Union[float, None] = None,
+        energy_reference_highest_occupied: Union[float, None] = None,
+        energy_reference_lowest_unoccupied: Union[float, None] = None,
+        n_values: int = 101,
+        type: str = 'electronic') -> EntryArchive:
+    '''Used to create a test data for DOS.
+
+    Args:
+        fill: List containing the energy ranges (eV) that should be filled with
+            non-zero values, e.g. [[[0, 1], [2, 3]]]. Defaults to single channel DOS
+            with a gap.
+        energy_fermi: Fermi energy (eV)
+        energy_reference_highest_occupied: Highest occupied energy (eV) as given by a parser.
+        energy_reference_lowest_unoccupied: Lowest unoccupied energy (eV) as given by a parser.
+        type: 'electronic' or 'vibrational'
+        has_references: Whether the DOS has energy references or not.
+    '''
+    if len(fill) > 1 and type != 'electronic':
+        raise ValueError('Cannot create spin polarized DOS for non-electronic data.')
+    scc = template.run[0].calculation[0]
+    energies = np.linspace(-5, 5, n_values)
+    for i, range_list in enumerate(fill):
+        dos = Dos()
+        scc[f'dos_{type}'].append(dos)
+        dos.spin_channel = i if (len(fill) == 2 and type == 'electronic') else None
+        dos.energies = energies * ureg.electron_volt
+        dos_total = DosValues()
+        dos.total.append(dos_total)
+        dos_value = np.zeros(n_values)
+        for r in range_list:
+            idx_bottom = (np.abs(energies - r[0])).argmin()
+            idx_top = (np.abs(energies - r[1])).argmin()
+            dos_value[idx_bottom:idx_top] = 1
+        dos_total.value = dos_value
+
+    if energy_reference_fermi is not None:
+        energy_reference_fermi *= ureg.electron_volt
+    if energy_reference_highest_occupied is not None:
+        energy_reference_highest_occupied *= ureg.electron_volt
+    if energy_reference_lowest_unoccupied is not None:
+        energy_reference_lowest_unoccupied *= ureg.electron_volt
+    scc.energy = Energy(
+        fermi=energy_reference_fermi,
+        highest_occupied=energy_reference_highest_occupied,
+        lowest_unoccupied=energy_reference_lowest_unoccupied)
+    return template
+
+
+def get_template_dos(
+        fill: List = [[[0, 1], [2, 3]]],
+        energy_reference_fermi: Union[float, None] = None,
+        energy_reference_highest_occupied: Union[float, None] = None,
+        energy_reference_lowest_unoccupied: Union[float, None] = None,
+        n_values: int = 101,
+        type: str = 'electronic',
+        normalize: bool = True) -> EntryArchive:
+
+    archive = get_template_dft()
+    archive = add_template_dos(archive, fill, energy_reference_fermi,
+                               energy_reference_highest_occupied,
+                               energy_reference_lowest_unoccupied,
+                               n_values, type)
+    if normalize:
+        normalize_all(archive)
+    return archive
 
 
 def parse(filepath, parser_class):
