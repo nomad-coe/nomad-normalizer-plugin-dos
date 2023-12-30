@@ -23,6 +23,7 @@ from typing import Optional
 
 from nomad_dos_fingerprints import DOSFingerprint  # pylint: disable=import-error
 from nomad.normalizing.normalizer import Normalizer
+import runschema.calculation
 
 
 class DosNormalizer(Normalizer):
@@ -36,7 +37,6 @@ class DosNormalizer(Normalizer):
     normalizer_level = 1
 
     def normalize(self, logger=None) -> None:
-        from runschema.calculation import DosValues, DosFingerprint
 
         if logger is not None:
             self.logger = logger.bind(normalizer=self.__class__.__name__)
@@ -74,7 +74,7 @@ class DosNormalizer(Normalizer):
                         atom_data[atom].append(orbital_pdos.value.magnitude)
                     for atom, data in atom_data.items():
                         atom_value = np.sum(data, axis=0)
-                        sec_dos_atom = DosValues()
+                        sec_dos_atom = runschema.calculation.DosValues()
                         dos.atom_projected.append(sec_dos_atom)
                         atom_label = re.sub(r'\d', '', atom)
                         atom_index = re.sub(r'[a-zA-Z]', '', atom)
@@ -93,7 +93,7 @@ class DosNormalizer(Normalizer):
                         species_data[species].append(atom_pdos.value.magnitude)
                     for species, data in species_data.items():
                         species_value = np.sum(data, axis=0)
-                        sec_dos_species = DosValues()
+                        sec_dos_species =runschema.calculation. DosValues()
                         dos.species_projected.append(sec_dos_species)
                         sec_dos_species.atom_label = species
                         sec_dos_species.value = species_value
@@ -107,7 +107,7 @@ class DosNormalizer(Normalizer):
                     for species_pdos in species_projected:
                         total_data.append(species_pdos.value.magnitude)
                     total_value = np.sum(total_data, axis=0)
-                    sec_dos_total = DosValues()
+                    sec_dos_total = runschema.calculation.DosValues()
                     sec_dos_total.value = total_value
                     dos.total.append(sec_dos_total)
                 # TODO add provenance for the Dos. This will require that the spin_polarized
@@ -139,7 +139,7 @@ class DosNormalizer(Normalizer):
                     except Exception as e:
                         self.logger.error('could not generate dos fingerprint', exc_info=e)
                     else:
-                        sec_dos_fingerprint = dos.m_create(DosFingerprint)
+                        sec_dos_fingerprint = dos.m_create(runschema.calculation.DosFingerprint)
                         sec_dos_fingerprint.bins = dos_fingerprint.bins
                         sec_dos_fingerprint.indices = dos_fingerprint.indices
                         sec_dos_fingerprint.stepsize = dos_fingerprint.stepsize

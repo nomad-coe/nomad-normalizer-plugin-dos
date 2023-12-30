@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.urls]
-homepage = "https://github.com/nomad-coe/nomad-normalizer-dos-plugin"
+homepage = "https://github.com/nomad-coe/nomad-normalizer-plugin-dos"
 
 [project.optional-dependencies]
 dev = [
