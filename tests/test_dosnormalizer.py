@@ -22,7 +22,7 @@ import numpy as np
 
 from nomad.units import ureg
 from nomad.datamodel import EntryArchive, EntryMetadata
-from nomad.client import normalize_all
+from nomad.normalizing import normalizers
 from nomad.utils import get_logger
 
 from nomad_dos_fingerprints import DOSFingerprint  # pylint: disable=import-error
@@ -56,6 +56,11 @@ LOGGER = get_logger(__name__)
 
 def approx(value, abs=0, rel=1e-1):
     return pytest.approx(value, abs=abs, rel=rel)
+
+
+def normalize_all(entry_archive: EntryArchive) -> None:
+    for normalizer_class in normalizers:
+        normalizer_class(entry_archive).normalize()
 
 
 def get_template_computation() -> EntryArchive:
@@ -186,7 +191,7 @@ def get_template_dos(
 
 
 def parse(filepath, parser_class):
-    archive = EntryArchive(metadata=EntryMetadata())
+    archive = EntryArchive(metadata=EntryMetadata(domain='dft'))
     parser_class().parse(filepath, archive, LOGGER)
     normalize_all(archive)
     return archive

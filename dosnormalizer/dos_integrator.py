@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-from nomad.datamodel.metainfo.simulation.calculation import Dos
+from runschema.calculation import Dos
 from nomad.utils import get_logger
 import numpy as np
 from typing import List, Union
