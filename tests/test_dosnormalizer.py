@@ -19,6 +19,7 @@
 import pytest
 from typing import List, Union
 import numpy as np
+import json
 
 from nomad.units import ureg
 from nomad.datamodel import EntryArchive, EntryMetadata
@@ -27,9 +28,6 @@ from nomad.utils import get_logger
 
 from nomad_dos_fingerprints import DOSFingerprint  # pylint: disable=import-error
 from dosnormalizer.dos_integrator import integrate_dos
-from electronicparsers.vasp import VASPParser
-from electronicparsers.fhiaims import FHIAimsParser
-from electronicparsers.exciting import ExcitingParser
 from runschema.run import Run, Program
 from runschema.system import System, Atoms
 from runschema.method import (
@@ -64,19 +62,18 @@ def normalize_all(entry_archive: EntryArchive) -> None:
 
 
 def get_template_computation() -> EntryArchive:
-    '''Returns a basic archive template for a computational calculation
-    '''
+    """Returns a basic archive template for a computational calculation"""
     template = EntryArchive()
     run = Run()
     template.run.append(run)
-    run.program = Program(name='VASP', version='4.6.35')
+    run.program = Program(name="VASP", version="4.6.35")
     system = System()
     run.system.append(system)
     system.atoms = Atoms(
         lattice_vectors=[
             [5.76372622e-10, 0.0, 0.0],
             [0.0, 5.76372622e-10, 0.0],
-            [0.0, 0.0, 4.0755698899999997e-10]
+            [0.0, 0.0, 4.0755698899999997e-10],
         ],
         positions=[
             [2.88186311e-10, 0.0, 2.0377849449999999e-10],
@@ -84,35 +81,40 @@ def get_template_computation() -> EntryArchive:
             [0.0, 0.0, 0.0],
             [2.88186311e-10, 2.88186311e-10, 0.0],
         ],
-        labels=['Br', 'K', 'Si', 'Si'],
-        periodic=[True, True, True])
+        labels=["Br", "K", "Si", "Si"],
+        periodic=[True, True, True],
+    )
     scc = Calculation()
     run.calculation.append(scc)
     scc.system_ref = system
     scc.energy = Energy(
         free=EnergyEntry(value=-1.5936767191492225e-18),
         total=EnergyEntry(value=-1.5935696296699573e-18),
-        total_t0=EnergyEntry(value=-3.2126683561907e-22))
+        total_t0=EnergyEntry(value=-3.2126683561907e-22),
+    )
     return template
 
 
 def get_template_dft() -> EntryArchive:
-    '''Returns a basic archive template for a DFT calculation.
-    '''
+    """Returns a basic archive template for a DFT calculation."""
     template = get_template_computation()
     run = template.run[-1]
     method = Method()
     run.method.append(method)
-    method.electrons_representation = [BasisSetContainer(
-        type='plane waves',
-        scope=['wavefunction'],
-        basis_set=[BasisSet(
-            type='plane waves',
-            scope=['valence'],
-        )]
-    )]
-    method.electronic = Electronic(method='DFT')
-    xc_functional = XCFunctional(exchange=[Functional(name='GGA_X_PBE')])
+    method.electrons_representation = [
+        BasisSetContainer(
+            type="plane waves",
+            scope=["wavefunction"],
+            basis_set=[
+                BasisSet(
+                    type="plane waves",
+                    scope=["valence"],
+                )
+            ],
+        )
+    ]
+    method.electronic = Electronic(method="DFT")
+    xc_functional = XCFunctional(exchange=[Functional(name="GGA_X_PBE")])
     method.dft = DFT(xc_functional=xc_functional)
     scc = run.calculation[-1]
     scc.method_ref = method
@@ -121,14 +123,15 @@ def get_template_dft() -> EntryArchive:
 
 
 def add_template_dos(
-        template: EntryArchive,
-        fill: List = [[[0, 1], [2, 3]]],
-        energy_reference_fermi: Union[float, None] = None,
-        energy_reference_highest_occupied: Union[float, None] = None,
-        energy_reference_lowest_unoccupied: Union[float, None] = None,
-        n_values: int = 101,
-        type: str = 'electronic') -> EntryArchive:
-    '''Used to create a test data for DOS.
+    template: EntryArchive,
+    fill: List = [[[0, 1], [2, 3]]],
+    energy_reference_fermi: Union[float, None] = None,
+    energy_reference_highest_occupied: Union[float, None] = None,
+    energy_reference_lowest_unoccupied: Union[float, None] = None,
+    n_values: int = 101,
+    type: str = "electronic",
+) -> EntryArchive:
+    """Used to create a test data for DOS.
 
     Args:
         fill: List containing the energy ranges (eV) that should be filled with
@@ -139,15 +142,15 @@ def add_template_dos(
         energy_reference_lowest_unoccupied: Lowest unoccupied energy (eV) as given by a parser.
         type: 'electronic' or 'vibrational'
         has_references: Whether the DOS has energy references or not.
-    '''
-    if len(fill) > 1 and type != 'electronic':
-        raise ValueError('Cannot create spin polarized DOS for non-electronic data.')
+    """
+    if len(fill) > 1 and type != "electronic":
+        raise ValueError("Cannot create spin polarized DOS for non-electronic data.")
     scc = template.run[0].calculation[0]
     energies = np.linspace(-5, 5, n_values)
     for i, range_list in enumerate(fill):
         dos = Dos()
-        scc[f'dos_{type}'].append(dos)
-        dos.spin_channel = i if (len(fill) == 2 and type == 'electronic') else None
+        scc[f"dos_{type}"].append(dos)
+        dos.spin_channel = i if (len(fill) == 2 and type == "electronic") else None
         dos.energies = energies * ureg.electron_volt
         dos_total = DosValues()
         dos.total.append(dos_total)
@@ -167,55 +170,74 @@ def add_template_dos(
     scc.energy = Energy(
         fermi=energy_reference_fermi,
         highest_occupied=energy_reference_highest_occupied,
-        lowest_unoccupied=energy_reference_lowest_unoccupied)
+        lowest_unoccupied=energy_reference_lowest_unoccupied,
+    )
     return template
 
 
 def get_template_dos(
-        fill: List = [[[0, 1], [2, 3]]],
-        energy_reference_fermi: Union[float, None] = None,
-        energy_reference_highest_occupied: Union[float, None] = None,
-        energy_reference_lowest_unoccupied: Union[float, None] = None,
-        n_values: int = 101,
-        type: str = 'electronic',
-        normalize: bool = True) -> EntryArchive:
-
+    fill: List = [[[0, 1], [2, 3]]],
+    energy_reference_fermi: Union[float, None] = None,
+    energy_reference_highest_occupied: Union[float, None] = None,
+    energy_reference_lowest_unoccupied: Union[float, None] = None,
+    n_values: int = 101,
+    type: str = "electronic",
+    normalize: bool = True,
+) -> EntryArchive:
     archive = get_template_dft()
-    archive = add_template_dos(archive, fill, energy_reference_fermi,
-                               energy_reference_highest_occupied,
-                               energy_reference_lowest_unoccupied,
-                               n_values, type)
+    archive = add_template_dos(
+        archive,
+        fill,
+        energy_reference_fermi,
+        energy_reference_highest_occupied,
+        energy_reference_lowest_unoccupied,
+        n_values,
+        type,
+    )
     if normalize:
         normalize_all(archive)
     return archive
 
 
 def parse(filepath, parser_class):
-    archive = EntryArchive(metadata=EntryMetadata(domain='dft'))
+    archive = EntryArchive(metadata=EntryMetadata(domain="dft"))
     parser_class().parse(filepath, archive, LOGGER)
     normalize_all(archive)
     return archive
 
+
+def load_archive(filepath: str):
+    archive = EntryArchive.m_from_dict(json.load(open(filepath)))
+    # TODO investigate: for some reason, ref are not updated when loading archive from file
+    for calc in archive.run[0].calculation:
+        calc.system_ref = calc.system_ref.m_resolved()
+        calc.method_ref = calc.method_ref.m_resolved()
+    normalize_all(archive)
+    return archive
+
+
 @pytest.fixture
 def dos_si_vasp():
-    return parse('tests/data/dos_si_vasp/vasprun.xml.relax2.xz', VASPParser)
+    return load_archive("tests/data/dos_si_vasp.archive.json")
 
 
 @pytest.fixture
 def dos_si_exciting():
-    return parse('tests/data/dos_si_exciting/INFO.OUT', ExcitingParser)
+    return load_archive("tests/data/dos_si_exciting.archive.json")
+
 
 @pytest.fixture
 def dos_si_fhiaims():
-    return parse('tests/data/dos_si_fhiaims/aims.log', FHIAimsParser)
+    return load_archive("tests/data/dos_si_fhiaims.archive.json")
 
 
 def test_fingerprint(dos_si_vasp):
     # Check if DOS fingerprint was created
     dos_fingerprint_dict = dos_si_vasp.m_xpath(
-        '''
+        """
         run[*].calculation[*].dos_electronic[*].fingerprint
-        ''')[-1][-1][0]
+        """
+    )[-1][-1][0]
     dos_fingerprint = DOSFingerprint().from_dict(dos_fingerprint_dict)
     assert dos_fingerprint.get_similarity(dos_fingerprint) == 1
     assert dos_fingerprint.filling_factor != 0
@@ -245,9 +267,11 @@ def test_fingerprint(dos_si_vasp):
         ([[[0, 1], [2, 3]]], None, None, [2.01], [2.0], [2.0], 101),
         # Fermi energy at the center of a tiny peak.
         ([[[1, 1.1]]], None, None, [1], [1], [1], 101),
-    ]
+    ],
 )
-def test_energy_reference_detection(ranges, highest, lowest, fermi, expected_highest, expected_lowest, n):
+def test_energy_reference_detection(
+    ranges, highest, lowest, fermi, expected_highest, expected_lowest, n
+):
     """Checks that the energy reference detection for DOS works in different
     scenarios.
     """
@@ -258,12 +282,12 @@ def test_energy_reference_detection(ranges, highest, lowest, fermi, expected_hig
     assert len(archive.run[0].calculation[0].dos_electronic) == 1
     dos = archive.run[0].calculation[0].dos_electronic[0]
     gap = dos.band_gap[0]
-    assert gap.energy_highest_occupied.to(ureg.electron_volt).magnitude == pytest.approx(
-        expected_highest[0]
-    )
-    assert gap.energy_lowest_unoccupied.to(ureg.electron_volt).magnitude == pytest.approx(
-        expected_lowest[0]
-    )
+    assert gap.energy_highest_occupied.to(
+        ureg.electron_volt
+    ).magnitude == pytest.approx(expected_highest[0])
+    assert gap.energy_lowest_unoccupied.to(
+        ureg.electron_volt
+    ).magnitude == pytest.approx(expected_lowest[0])
 
 
 def test_dos_magnitude(dos_si_vasp, dos_si_exciting, dos_si_fhiaims):
