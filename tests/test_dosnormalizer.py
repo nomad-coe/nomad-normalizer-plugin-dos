@@ -25,6 +25,7 @@ from nomad.units import ureg
 from nomad.datamodel import EntryArchive, EntryMetadata
 from nomad.normalizing import normalizers
 from nomad.utils import get_logger
+from nomad.metainfo import Quantity, MSection, Section, SubSection
 
 from nomad_dos_fingerprints import DOSFingerprint  # pylint: disable=import-error
 from dosnormalizer.dos_integrator import integrate_dos
@@ -228,6 +229,23 @@ def dos_si_exciting():
 
 @pytest.fixture
 def dos_si_fhiaims():
+    # TODO remove fhiiams-specifix metainfo usage from method normalizer.
+    # We do not want to import the electronicparsers project for this!
+    class section_controlIn_basis_set(MSection):
+        m_def = Section(validate=False)
+
+        x_fhi_aims_controlIn_species_name = Quantity(
+            type=str,
+            shape=[],
+        )
+
+    class XMethod(Method):
+        m_def = Section(extends_base_section=True)
+
+        x_fhi_aims_section_controlIn_basis_set = SubSection(
+            sub_section=section_controlIn_basis_set, repeats=True
+        )
+
     return load_archive("tests/data/dos_si_fhiaims.archive.json")
 
 
