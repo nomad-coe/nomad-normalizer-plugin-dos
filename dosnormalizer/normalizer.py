@@ -62,7 +62,7 @@ class DosNormalizer(Normalizer):
                 n_spin_channels = len(dos_electronic)
             for index, dos in enumerate(dos_electronic):
                 dos_values_cls = dos.m_def.all_sub_sections[
-                    "atom_projected"
+                    'atom_projected'
                 ].sub_section.section_cls
                 orbital_projected = dos.orbital_projected
                 atom_projected = dos.atom_projected
@@ -82,8 +82,8 @@ class DosNormalizer(Normalizer):
                         atom_value = np.sum(data, axis=0)
                         sec_dos_atom = dos_values_cls()
                         dos.atom_projected.append(sec_dos_atom)
-                        atom_label = re.sub(r"\d", "", atom)
-                        atom_index = re.sub(r"[a-zA-Z]", "", atom)
+                        atom_label = re.sub(r'\d', '', atom)
+                        atom_index = re.sub(r'[a-zA-Z]', '', atom)
                         sec_dos_atom.atom_label = atom_label
                         sec_dos_atom.atom_index = atom_index if atom_index else None
                         sec_dos_atom.value = atom_value
@@ -108,8 +108,8 @@ class DosNormalizer(Normalizer):
                 # our procedure
                 if not total_dos and species_projected:
                     self.logger.info(
-                        "Total DOS not found, but Projected DOS was found. We "
-                        "will sum up contributions leading to the final DOS."
+                        'Total DOS not found, but Projected DOS was found. We '
+                        'will sum up contributions leading to the final DOS.'
                     )
                     total_data = []
                     for species_pdos in species_projected:
@@ -155,11 +155,11 @@ class DosNormalizer(Normalizer):
                         )
                     except Exception as e:
                         self.logger.error(
-                            "could not generate dos fingerprint", exc_info=e
+                            'could not generate dos fingerprint', exc_info=e
                         )
                     else:
                         fingerprint_cls = dos.m_def.all_sub_sections[
-                            "fingerprint"
+                            'fingerprint'
                         ].sub_section.section_cls
                         sec_dos_fingerprint = fingerprint_cls()
                         dos.fingerprint = sec_dos_fingerprint
@@ -190,21 +190,21 @@ class DosNormalizer(Normalizer):
         The values are divided by integral(DOS, lowest state, Fermi energy), or likewise sum(<atomic numbers>)."""
         if not calc.system_ref:
             self.logger.warning(
-                "Could not resolve the system reference from calculation.system_ref, "
-                "thus electronic normalization factor not reported."
+                'Could not resolve the system reference from calculation.system_ref, '
+                'thus electronic normalization factor not reported.'
             )
             return None
         atoms = calc.system_ref.atoms
         if not len(dos.total):
             self.logger.warning(
-                "Could not resolve total DOS from calculation.dos.total, "
-                "thus DOS electronic normalization factor not reported."
+                'Could not resolve total DOS from calculation.dos.total, '
+                'thus DOS electronic normalization factor not reported.'
             )
             return None
         elif not len(atoms.species):
             self.logger.warning(
-                "Could not resolve atoms information from calculation.system_ref.atoms, "
-                "thus DOS electronic normalization factor not reported."
+                'Could not resolve atoms information from calculation.system_ref.atoms, '
+                'thus DOS electronic normalization factor not reported.'
             )
             return None
         else:
@@ -219,14 +219,14 @@ class DosNormalizer(Normalizer):
         atoms = calc.system_ref.atoms
         if not len(dos.total):
             self.logger.warning(
-                "Could not resolve total DOS from calculation.dos.total, "
-                "thus DOS phononic normalization factor not reported."
+                'Could not resolve total DOS from calculation.dos.total, '
+                'thus DOS phononic normalization factor not reported.'
             )
             return None
         elif not len(atoms.species):
             self.logger.warning(
-                "Could not resolve atoms information from calculation.system_ref.atoms, "
-                "thus DOS phononic normalization factor not reported."
+                'Could not resolve atoms information from calculation.system_ref.atoms, '
+                'thus DOS phononic normalization factor not reported.'
             )
             return None
         else:
@@ -251,14 +251,14 @@ class DosNormalizer(Normalizer):
         from nomad import config
 
         band_gap_deprecated_cls = dos.m_def.all_sub_sections[
-            "band_gap"
+            'band_gap'
         ].sub_section.section_cls
 
         dos.energy_fermi = energy_fermi
         eref = energy_highest if energy_fermi is None else energy_fermi
         # No reference available
         if eref is None:
-            self.logger.info("could not resolve energy references for dos")
+            self.logger.info('could not resolve energy references for dos')
             return
 
         # Use a reference energy (fermi or highest occupied) to determine the
@@ -366,12 +366,12 @@ class DosNormalizer(Normalizer):
 
             if info.value is not None:
                 band_gap_cls = calc.m_def.all_sub_sections[
-                    "band_gap"
+                    'band_gap'
                 ].sub_section.section_cls
                 proper_info = band_gap_cls().m_from_dict(info.m_to_dict())
                 provenance_cls = proper_info.m_def.all_sub_sections[
-                    "provenance"
+                    'provenance'
                 ].sub_section.section_cls
-                proper_info.provenance = provenance_cls(dos=dos.total[0], label="dos")
+                proper_info.provenance = provenance_cls(dos=dos.total[0], label='dos')
                 calc.band_gap.append(proper_info)
                 dos.band_gap.append(info)
