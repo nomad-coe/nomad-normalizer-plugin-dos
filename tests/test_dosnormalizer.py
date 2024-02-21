@@ -67,7 +67,7 @@ def get_template_computation() -> EntryArchive:
     template = EntryArchive()
     run = Run()
     template.run.append(run)
-    run.program = Program(name="VASP", version="4.6.35")
+    run.program = Program(name='VASP', version='4.6.35')
     system = System()
     run.system.append(system)
     system.atoms = Atoms(
@@ -82,7 +82,7 @@ def get_template_computation() -> EntryArchive:
             [0.0, 0.0, 0.0],
             [2.88186311e-10, 2.88186311e-10, 0.0],
         ],
-        labels=["Br", "K", "Si", "Si"],
+        labels=['Br', 'K', 'Si', 'Si'],
         periodic=[True, True, True],
     )
     scc = Calculation()
@@ -104,18 +104,18 @@ def get_template_dft() -> EntryArchive:
     run.method.append(method)
     method.electrons_representation = [
         BasisSetContainer(
-            type="plane waves",
-            scope=["wavefunction"],
+            type='plane waves',
+            scope=['wavefunction'],
             basis_set=[
                 BasisSet(
-                    type="plane waves",
-                    scope=["valence"],
+                    type='plane waves',
+                    scope=['valence'],
                 )
             ],
         )
     ]
-    method.electronic = Electronic(method="DFT")
-    xc_functional = XCFunctional(exchange=[Functional(name="GGA_X_PBE")])
+    method.electronic = Electronic(method='DFT')
+    xc_functional = XCFunctional(exchange=[Functional(name='GGA_X_PBE')])
     method.dft = DFT(xc_functional=xc_functional)
     scc = run.calculation[-1]
     scc.method_ref = method
@@ -130,7 +130,7 @@ def add_template_dos(
     energy_reference_highest_occupied: Union[float, None] = None,
     energy_reference_lowest_unoccupied: Union[float, None] = None,
     n_values: int = 101,
-    type: str = "electronic",
+    type: str = 'electronic',
 ) -> EntryArchive:
     """Used to create a test data for DOS.
 
@@ -144,14 +144,14 @@ def add_template_dos(
         type: 'electronic' or 'vibrational'
         has_references: Whether the DOS has energy references or not.
     """
-    if len(fill) > 1 and type != "electronic":
-        raise ValueError("Cannot create spin polarized DOS for non-electronic data.")
+    if len(fill) > 1 and type != 'electronic':
+        raise ValueError('Cannot create spin polarized DOS for non-electronic data.')
     scc = template.run[0].calculation[0]
     energies = np.linspace(-5, 5, n_values)
     for i, range_list in enumerate(fill):
         dos = Dos()
-        scc[f"dos_{type}"].append(dos)
-        dos.spin_channel = i if (len(fill) == 2 and type == "electronic") else None
+        scc[f'dos_{type}'].append(dos)
+        dos.spin_channel = i if (len(fill) == 2 and type == 'electronic') else None
         dos.energies = energies * ureg.electron_volt
         dos_total = DosValues()
         dos.total.append(dos_total)
@@ -182,7 +182,7 @@ def get_template_dos(
     energy_reference_highest_occupied: Union[float, None] = None,
     energy_reference_lowest_unoccupied: Union[float, None] = None,
     n_values: int = 101,
-    type: str = "electronic",
+    type: str = 'electronic',
     normalize: bool = True,
 ) -> EntryArchive:
     archive = get_template_dft()
@@ -201,7 +201,7 @@ def get_template_dos(
 
 
 def parse(filepath, parser_class):
-    archive = EntryArchive(metadata=EntryMetadata(domain="dft"))
+    archive = EntryArchive(metadata=EntryMetadata(domain='dft'))
     parser_class().parse(filepath, archive, LOGGER)
     normalize_all(archive)
     return archive
@@ -219,12 +219,12 @@ def load_archive(filepath: str):
 
 @pytest.fixture
 def dos_si_vasp():
-    return load_archive("tests/data/dos_si_vasp.archive.json")
+    return load_archive('tests/data/dos_si_vasp.archive.json')
 
 
 @pytest.fixture
 def dos_si_exciting():
-    return load_archive("tests/data/dos_si_exciting.archive.json")
+    return load_archive('tests/data/dos_si_exciting.archive.json')
 
 
 @pytest.fixture
@@ -246,7 +246,7 @@ def dos_si_fhiaims():
             sub_section=section_controlIn_basis_set, repeats=True
         )
 
-    return load_archive("tests/data/dos_si_fhiaims.archive.json")
+    return load_archive('tests/data/dos_si_fhiaims.archive.json')
 
 
 def test_fingerprint(dos_si_vasp):
@@ -263,7 +263,7 @@ def test_fingerprint(dos_si_vasp):
 
 
 @pytest.mark.parametrize(
-    "ranges, highest, lowest, fermi, expected_highest, expected_lowest, n",
+    'ranges, highest, lowest, fermi, expected_highest, expected_lowest, n',
     [
         # Explicit highest/lowest occupied given by parser: The current
         # behaviour is to override these values based on the data that is
