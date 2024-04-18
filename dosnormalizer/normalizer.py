@@ -42,7 +42,7 @@ class DosNormalizer(Normalizer):
             self.logger = logger.bind(normalizer=self.__class__.__name__)
 
         # Do nothing if section_run is not present
-        if archive.run is None:
+        if not archive.run:
             return
         section_run = archive.run[0]
 
