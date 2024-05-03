@@ -21,6 +21,7 @@ import re
 from collections import defaultdict
 from typing import Optional
 
+from nomad.datamodel import EntryArchive
 from nomad_dos_fingerprints import DOSFingerprint  # pylint: disable=import-error
 from nomad.normalizing.normalizer import Normalizer
 
@@ -36,15 +37,16 @@ class DosNormalizer(Normalizer):
 
     normalizer_level = 1
 
-    def normalize(self, logger=None) -> None:
+    def normalize(self, archive: EntryArchive, logger=None) -> None:
         if logger is not None:
             self.logger = logger.bind(normalizer=self.__class__.__name__)
 
         # Do nothing if section_run is not present
-        if self.section_run is None:
+        if not archive.run:
             return
+        section_run = archive.run[0]
 
-        calculations = self.section_run.calculation
+        calculations = section_run.calculation
         if calculations is None:
             return
 
