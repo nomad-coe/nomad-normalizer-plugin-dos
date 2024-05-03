@@ -59,7 +59,7 @@ def approx(value, abs=0, rel=1e-1):
 
 def normalize_all(entry_archive: EntryArchive) -> None:
     for normalizer_class in normalizers:
-        normalizer_class(entry_archive).normalize()
+        normalizer_class().normalize(entry_archive)
 
 
 def get_template_computation() -> EntryArchive:
