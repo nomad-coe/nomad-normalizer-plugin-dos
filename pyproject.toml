@@ -75,5 +75,5 @@ line-ending = "auto"
 [tool.setuptools.packages.find]
 include = ["dosnormalizer*"]
 
-[tool.setuptools.package-data]
-dosnormalizer = ["*/nomad_plugin.yaml"]
+[project.entry-points.'nomad.plugin']
+dosnormalizer = "dosnormalizer:dos_normalizer_entry_point"
