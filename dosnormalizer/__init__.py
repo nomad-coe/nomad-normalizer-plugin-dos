@@ -15,4 +15,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .normalizer import DosNormalizer
+from nomad.config.models.plugins import NormalizerEntryPoint
+
+
+class DosNormalizerEntryPoint(NormalizerEntryPoint):
+    def load(self):
+        import dosnormalizer
+        from .normalizer import DosNormalizer
+
+        dosnormalizer.DosNormalizer = DosNormalizer
+
+        return DosNormalizer(**self.dict())
+
+
+dos_normalizer_entry_point = DosNormalizerEntryPoint(
+    name='DosNormalizer',
+    description='Normalizer for the DOS data.',
+)
