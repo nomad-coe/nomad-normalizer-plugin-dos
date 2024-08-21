@@ -30,6 +30,7 @@ tests = [
     "nomad-schema-plugin-run@git+https://github.com/nomad-coe/nomad-schema-plugin-run.git@develop",
     "nomad-schema-plugin-simulation-workflow@git+https://github.com/nomad-coe/nomad-schema-plugin-simulation-workflow.git@develop",
     "nomad_dos_fingerprints@git+https://gitlab.mpcdf.mpg.de/nomad-lab/nomad-dos-fingerprints",
+    "nomad-normalizer-plugin-system@git+https://github.com/nomad-coe/nomad-normalizer-plugin-system.git@develop",
 ]
 
 [tool.ruff]
