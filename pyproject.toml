@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=61.0.0", "setuptools-scm>=8.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "nomad-normalizer-plugin-dos"
-version = "1.0"
+dynamic = ["version"]
 description = "DOS normalizer plugin for NOMAD."
 readme = "README.md"
 authors = [{ name = "The NOMAD Authors" }]
@@ -76,6 +76,8 @@ line-ending = "auto"
 
 [tool.setuptools.packages.find]
 include = ["dosnormalizer*"]
+
+[tool.setuptools_scm]
 
 [project.entry-points.'nomad.plugin']
 dosnormalizer = "dosnormalizer:dos_normalizer_entry_point"
