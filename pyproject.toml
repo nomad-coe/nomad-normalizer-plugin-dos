@@ -24,7 +24,7 @@ dev = [
     "pytest-timeout>=1.4.2",
     "pytest-cov>=2.7.1",
     "ruff>=0.6",
-    typing-extensions>=4.12,
+    "typing-extensions>=4.12",
     'uv>=0.2.35',
 ]
 
