@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nomad-normalizer-plugin-dos"
-version = "1.0"
+dynamic = ["version"]
 description = "DOS normalizer plugin for NOMAD."
 readme = "README.md"
 authors = [{ name = "The NOMAD Authors" }]
