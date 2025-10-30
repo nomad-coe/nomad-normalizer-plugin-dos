@@ -20,8 +20,8 @@ from nomad.config.models.plugins import NormalizerEntryPoint
 
 class DosNormalizerEntryPoint(NormalizerEntryPoint):
     def load(self):
-        import dosnormalizer
-        from .normalizer import DosNormalizer
+        import dosnormalizer  # noqa
+        from .normalizer import DosNormalizer  # noqa
 
         dosnormalizer.DosNormalizer = DosNormalizer
 

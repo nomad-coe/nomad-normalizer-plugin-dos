@@ -250,7 +250,7 @@ class DosNormalizer(Normalizer):
         """Given the DOS and information about energy references,
         determines the energy references separately for all spin channels.
         """
-        from nomad import config
+        from nomad import config  # noqa
 
         band_gap_deprecated_cls = dos.m_def.all_sub_sections[
             'band_gap'
