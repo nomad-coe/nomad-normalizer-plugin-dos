@@ -27,7 +27,7 @@ from nomad.normalizing import normalizers
 from nomad.utils import get_logger
 from nomad.metainfo import Quantity, MSection, Section, SubSection
 
-from nomad_dos_fingerprints import DOSFingerprint  # pylint: disable=import-error
+# from nomad_dos_fingerprints import DOSFingerprint  # pylint: disable=import-error
 from dosnormalizer.dos_integrator import integrate_dos
 from runschema.run import Run, Program
 from runschema.system import System, Atoms
@@ -249,17 +249,17 @@ def dos_si_fhiaims():
     return load_archive('tests/data/dos_si_fhiaims.archive.json')
 
 
-def test_fingerprint(dos_si_vasp):
-    # Check if DOS fingerprint was created
-    dos_fingerprint_dict = dos_si_vasp.m_xpath(
-        """
-        run[*].calculation[*].dos_electronic[*].fingerprint
-        """
-    )[-1][-1][0]
-    dos_fingerprint = DOSFingerprint().from_dict(dos_fingerprint_dict)
-    assert dos_fingerprint.get_similarity(dos_fingerprint) == 1
-    assert dos_fingerprint.filling_factor != 0
-    assert dos_fingerprint.filling_factor != 1
+# def test_fingerprint(dos_si_vasp):
+#     # Check if DOS fingerprint was created
+#     dos_fingerprint_dict = dos_si_vasp.m_xpath(
+#         """
+#         run[*].calculation[*].dos_electronic[*].fingerprint
+#         """
+#     )[-1][-1][0]
+#     dos_fingerprint = DOSFingerprint().from_dict(dos_fingerprint_dict)
+#     assert dos_fingerprint.get_similarity(dos_fingerprint) == 1
+#     assert dos_fingerprint.filling_factor != 0
+#     assert dos_fingerprint.filling_factor != 1
 
 
 @pytest.mark.parametrize(

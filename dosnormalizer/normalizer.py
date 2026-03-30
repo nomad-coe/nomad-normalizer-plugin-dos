@@ -22,7 +22,7 @@ from collections import defaultdict
 from typing import Optional
 
 from nomad.datamodel import EntryArchive
-from nomad_dos_fingerprints import DOSFingerprint  # pylint: disable=import-error
+# from nomad_dos_fingerprints import DOSFingerprint  # pylint: disable=import-error
 from nomad.normalizing.normalizer import Normalizer
 
 
@@ -148,30 +148,29 @@ class DosNormalizer(Normalizer):
                             normalization_reference = max(
                                 normalization_reference, energy_highest_occupied
                             )
-                if normalization_reference is not None:
-                    dos_energies_normalized = dos.energies - normalization_reference
-
-                    try:
-                        dos_fingerprint = DOSFingerprint().calculate(
-                            dos_energies_normalized.magnitude, dos_values
-                        )
-                    except Exception as e:
-                        self.logger.error(
-                            'could not generate dos fingerprint', exc_info=e
-                        )
-                    else:
-                        fingerprint_cls = dos.m_def.all_sub_sections[
-                            'fingerprint'
-                        ].sub_section.section_cls
-                        sec_dos_fingerprint = fingerprint_cls()
-                        dos.fingerprint = sec_dos_fingerprint
-                        sec_dos_fingerprint.bins = dos_fingerprint.bins
-                        sec_dos_fingerprint.indices = dos_fingerprint.indices
-                        sec_dos_fingerprint.stepsize = dos_fingerprint.stepsize
-                        sec_dos_fingerprint.grid_id = dos_fingerprint.grid_id
-                        sec_dos_fingerprint.filling_factor = (
-                            dos_fingerprint.filling_factor
-                        )
+                # if normalization_reference is not None:
+                    # dos_energies_normalized = dos.energies - normalization_reference
+                    # try:
+                    #     dos_fingerprint = DOSFingerprint().calculate(
+                    #         dos_energies_normalized.magnitude, dos_values
+                    #     )
+                    # except Exception as e:
+                    #     self.logger.error(
+                    #         'could not generate dos fingerprint', exc_info=e
+                    #     )
+                    # else:
+                    #     fingerprint_cls = dos.m_def.all_sub_sections[
+                    #         'fingerprint'
+                    #     ].sub_section.section_cls
+                    #     sec_dos_fingerprint = fingerprint_cls()
+                    #     dos.fingerprint = sec_dos_fingerprint
+                    #     sec_dos_fingerprint.bins = dos_fingerprint.bins
+                    #     sec_dos_fingerprint.indices = dos_fingerprint.indices
+                    #     sec_dos_fingerprint.stepsize = dos_fingerprint.stepsize
+                    #     sec_dos_fingerprint.grid_id = dos_fingerprint.grid_id
+                    #     sec_dos_fingerprint.filling_factor = (
+                    #         dos_fingerprint.filling_factor
+                    #     )
 
                 # Add normalization factor
                 set_normalization_factor = self.add_electronic_normalization_factor(
